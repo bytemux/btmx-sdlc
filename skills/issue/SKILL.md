@@ -1,28 +1,54 @@
 ---
 name: issue
-description: Create a GitHub issue (Story, Task, Bug, Spike) in a repo that follows btmx-sdlc conventions (docs/conventions.md). Sets the issue type and, for a Task, the parent Story.
+description: Creates a GitHub issue (Story, Task, Bug or Spike) with its issue type and, for a Task, its parent Story. Use when the user asks to create a Story, Task, Bug or Spike.
 ---
 
-# skill:issue
+# Goal
 
-> **Placeholder.** How Stories and Tasks are created depends on the spec method (TDD, BDD, OpenSpec, Spec Kit), which is not decided yet — see docs/conventions.md §6 "Decide later". Until then this skill does only the minimal steps below.
+Create one issue with the right type and parent.
 
-## Steps
+# Conventions
 
-1. Pick the type:
-   - `Story`: user-facing slice ("as a user I can X"). Parent of Tasks, no PR of its own.
-   - `Task`: one unit of agent work, 1 Task = 1 PR. Needs an open parent Story; if there is none, ask the user.
-   - `Bug`: something that worked and broke.
-   - `Spike`: research for one question; output: spike report.
-   - Never use `Feature`.
-2. Write the title: imperative, sentence case, ≤ 60 chars, no ID, no type (`Set up db`).
-3. Write the body from `template/issue.tpl` to a file. Do not list Tasks in a Story body. Do not write the parent in a Task body: GitHub shows both.
-4. Create the issue:
-   ```bash
-   gh issue create --title "<title>" --body-file "<file>" --type <Story|Task|Bug|Spike>            # Story, Bug, Spike
-   gh issue create --title "<title>" --body-file "<file>" --type Task --parent <story-number>    # Task
-   ```
-   If `gh` has no `--type` flag (older version), create without it and set the type:
-   `gh api -X PATCH repos/{owner}/{repo}/issues/<n> -f type=<Type>`.
-5. Priority: only when the user asks. See docs/conventions.md §1 for the API call.
-6. Report the issue URL.
+* `<sdlc>`: the btmx-sdlc repo (two levels up from this skill's folder)
+* Run all commands in the target repo's clone.
+
+# Context
+
+* Placeholder: how Stories and Tasks are created depends on the spec method, not decided yet — docs/conventions.md §6. Until then, only the steps below.
+
+# Procedure
+
+> Execute all steps below in order, top to bottom.
+
+## Step 1: Pick type
+
+* If a user-facing slice ("as a user I can X"): `Story`
+* If one unit of agent work (1 Task = 1 PR): `Task` — find its open parent Story: `gh issue list --type Story --state open --json number,title`
+  * If the user named the Story and it is in the list: use it.
+  * Else if the list has exactly one Story and the user gave no other hint: ask the user to confirm it, and STOP.
+  * Otherwise (no open Story, or several): ask the user which Story, and STOP.
+* If something that worked and broke: `Bug`
+* If research for one question: `Spike`
+* Otherwise: ask the user and STOP. Never use `Feature`.
+
+## Step 2: Write title and body
+
+* Title: imperative, sentence case, ≤ 60 chars, no ID, no type — `Set up db`
+* Body: `<sdlc>/template/issue.tpl`, written to a file; keep the sections that fit the type. No Task list in a Story, no parent line in a Task — GitHub shows both.
+
+## Step 3: Create
+
+```bash
+gh issue create --title "<title>" --body-file <file> --type <Type>                    # Story, Bug, Spike
+gh issue create --title "<title>" --body-file <file> --type Task --parent <story>      # Task
+```
+
+* If `gh` rejects `--type` (older version): create without it, then `gh api -X PATCH repos/{owner}/{repo}/issues/<n> -f type=<Type>`. Otherwise: go to Step 4.
+
+## Step 4: Priority
+
+* If the user asked for a priority: set it — docs/conventions.md §1. Otherwise: skip.
+
+# Output
+
+Begin with the issue URL. No preamble.
