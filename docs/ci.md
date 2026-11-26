@@ -18,8 +18,8 @@ Nov 26, 2026 · @Mike · draft 1 · GitHub Actions templates in `skills/init-rep
 
 Rules: docs/versioning.md.
 
-- `plan` (ubuntu): `scripts/next-version.sh` computes `version` and `changelog`. No version → the run ends green.
-- `release`: runs only when `plan` has a version and the run is not a dry run. Steps:
+- `plan` (ubuntu, `contents: read`): `scripts/next-version.sh` computes `version` and `changelog`. No version → the run ends green.
+- `release` (`contents: write`): runs only when `plan` has a version and the run is not a dry run. Steps:
   1. **Build** — a placeholder: the project replaces it with its build (and tests, if they must pass before a release). Files left in `dist/` are attached to the release. Stamp `$VERSION` into the artifacts.
   2. **Publish** — `gh release create v<version>` on the merged commit, notes = changelog.
 - `concurrency: release`: runs do not overlap; a queued run computes from the tag the previous run created.
@@ -29,7 +29,11 @@ Rules: docs/versioning.md.
 
 - Pin every action and reusable workflow to a full-length commit SHA, with the version in a comment: `actions/checkout@<sha> # v4.4.0`. The org setting below rejects a tag or branch (`@v4`, `@main`).
 - Use only actions the org setting allows (§4). Prefer plain bash in `run` when it is a few lines (e.g. `pr-title`).
-- Least permissions: set `permissions` at workflow level; `{}` when no token is needed.
+- Least permissions, two levels:
+  - Workflow level: the most any job needs without writing, usually `contents: read`; `{}` when no token is needed.
+  - Job level: only a job that writes sets its own `permissions` (e.g. `release`: `contents: write`). A job block replaces the workflow block for that job; scopes it does not name become `none`.
+  - Permissions apply per job, not per step: every step of a writing job, its build included, gets the write token. Accepted: splitting build and publish into two jobs needs `upload-artifact`/`download-artifact` for little gain.
+- `actions/checkout` with `persist-credentials: false`, so the token is not saved in `.git/config` for later steps. A step that needs the token gets it through `env` (`GH_TOKEN: ${{ github.token }}` for `gh`). In a private repo, a later `git fetch` or `git push` then has no token: use `gh`, or pass the token to that one command.
 - Untrusted input (PR title, body, branch name) goes through `env`, never `${{ }}` inside `run`.
 - Secrets: repo secrets only; name each secret and its scope in the project's docs.
 

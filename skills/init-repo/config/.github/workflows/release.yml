@@ -21,8 +21,9 @@ concurrency:
   group: release
   cancel-in-progress: false
 
+# Read-only by default; only the release job can write (docs/ci.md §3).
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   plan:
@@ -35,6 +36,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0 # all commits and tags since the last release
+          persist-credentials: false # do not save the token in .git/config
       - id: next
         run: scripts/next-version.sh
 
@@ -42,8 +44,13 @@ jobs:
     needs: plan
     if: ${{ needs.plan.outputs.version != '' && !inputs.dry_run }}
     runs-on: ubuntu-latest
+    # Replaces the workflow-level block for this job: gh release create needs write.
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false # gh reads GH_TOKEN; git has no token
       - name: Build
         env:
           VERSION: ${{ needs.plan.outputs.version }}
