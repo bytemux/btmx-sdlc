@@ -37,7 +37,7 @@ Nov 26, 2026 · @Mike · draft 4 · commits and PR titles follow [Conventional C
 - Story has no PR of its own. Close it by hand when all its Tasks are closed: GitHub does not close a parent issue when its sub-issues close.
 - A Task closes when its PR is squash-merged (`Closes #<n>` in the PR body), a few seconds after the merge.
 - Bug and Spike: no Tasks, 1 branch = 1 PR.
-- Create a Task: `gh issue create --title "<title>" --body-file <file> --parent <story>`.
+- Create a Task: `gh issue create --title "<title>" --body-file <file> --type Task --parent <story>`.
 
 ## 3. PR
 
