@@ -1,0 +1,71 @@
+# Release (btmx-sdlc docs/versioning.md, docs/ci.md): runs on every push to
+# main (a merged PR), or by hand from Actions → Release → Run workflow.
+# plan: scripts/next-version.sh computes the SemVer version from the commit
+#   titles since the latest v* tag; no releasable commit → no version, the
+#   run ends green.
+# release: runs only when plan has a version. Replace the "Build" step with
+#   the project's build; files left in dist/ are attached to the release.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Only compute and print the version; build nothing
+        type: boolean
+        default: false
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+# Read-only by default; only the release job can write (docs/ci.md §3).
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.next.outputs.version }}
+      changelog: ${{ steps.next.outputs.changelog }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0 # all commits and tags since the last release
+          persist-credentials: false # do not save the token in .git/config
+      - id: next
+        run: scripts/next-version.sh
+
+  release:
+    needs: plan
+    if: ${{ needs.plan.outputs.version != '' && !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    # Replaces the workflow-level block for this job: gh release create needs write.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false # gh reads GH_TOKEN; git has no token
+      - name: Build
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+        run: |
+          # PROJECT: replace with the build. Stamp $VERSION into the artifacts;
+          # nobody edits the version in the repo by hand.
+          mkdir -p dist
+      - name: Publish the release
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANGELOG: ${{ needs.plan.outputs.changelog }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          printf '## Changes\n\n%s\n' "$CHANGELOG" >notes.md
+          gh release create "v$VERSION" dist/* --target "$GITHUB_SHA" \
+            --title "v$VERSION" --notes-file notes.md

@@ -1,11 +1,11 @@
 ---
 name: init-repo
-description: Sets up a GitHub repo for the btmx-sdlc workflow (pre-commit hooks, AGENTS.md block, PR title check, merge settings, ruleset). Use when the user asks to set up, init or create a repo for this workflow.
+description: Sets up a GitHub repo for the btmx-sdlc workflow (pre-commit hooks, AGENTS.md block, PR title check, release workflow, merge settings, ruleset). Use when the user asks to set up, init or create a repo for this workflow.
 ---
 
 # Goal
 
-Make the gates in docs/conventions.md §5 work in one repo.
+Make the gates in docs/conventions.md §5 work in one repo, plus the release flow in docs/versioning.md.
 
 # Conventions
 
@@ -42,7 +42,12 @@ gh api user/issue-types -q '.[].name'
 cp <skill>/config/.pre-commit-config.yaml <repo>/
 mkdir -p <repo>/.github/workflows
 cp <skill>/config/.github/workflows/pr-title.yml <repo>/.github/workflows/
+mkdir -p <repo>/scripts
+cp <skill>/config/scripts/next-version.sh <repo>/scripts/
+cp <skill>/config/.github/workflows/release.yml <repo>/.github/workflows/   # skip if the repo has one; then make its plan job call scripts/next-version.sh
 ```
+
+* Tell the user to replace the `Build` step in `release.yml` (`<sdlc>/docs/ci.md` §2). Do not invent a build.
 
 * Append `<skill>/config/AGENTS.md` to `<repo>/AGENTS.md` (create it if missing; skip if the block is already there).
 * `<repo>/CLAUDE.md` contains the line `@AGENTS.md` (create the file if missing) — Claude Code reads CLAUDE.md.
@@ -51,7 +56,7 @@ cp <skill>/config/.github/workflows/pr-title.yml <repo>/.github/workflows/
 
 ```bash
 cd <repo>
-git add .pre-commit-config.yaml .github/workflows/pr-title.yml AGENTS.md CLAUDE.md
+git add .pre-commit-config.yaml .github/workflows/pr-title.yml .github/workflows/release.yml scripts/next-version.sh AGENTS.md CLAUDE.md
 git commit -m "chore: add btmx-sdlc conventions"
 git push origin main
 ```
@@ -80,9 +85,10 @@ gh api -X PATCH repos/{owner}/{repo} -f squash_merge_commit_title=PR_TITLE -f sq
 # Verification
 
 1. `ls <repo>/.git/hooks/pre-commit <repo>/.git/hooks/commit-msg`
-2. `git -C <repo> ls-tree -r --name-only origin/main | grep -E 'pre-commit-config|pr-title.yml|AGENTS.md|CLAUDE.md'` lists 4 files
+2. `git -C <repo> ls-tree -r --name-only origin/main | grep -E 'pre-commit-config|pr-title.yml|release.yml|next-version.sh|AGENTS.md|CLAUDE.md'` lists 6 files
 3. `gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,deleteBranchOnMerge` → `true`, `false`, `false`, `true`
 4. If Step 6 ran: `gh api repos/{owner}/{repo}/rulesets -q '.[].name'` contains `main`
+5. `(cd <repo> && scripts/next-version.sh)` exits 0 and prints the next version or a `::notice::`
 
 # Output
 
@@ -91,6 +97,7 @@ Begin with `Repo:`. No preamble.
 ```
 Repo: <url> (<visibility>)
 Done: <steps>
+Build step: <replaced | to replace by the user>
 Skipped: <steps and reason, or none>
 Issue types missing: <names, or none>
 ```
