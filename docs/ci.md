@@ -2,8 +2,6 @@
 
 Nov 26, 2026 · @Mike · draft 1 · GitHub Actions templates in `skills/init-repo/config/.github/workflows/`; `skill:init-repo` copies them
 
-Origin: btmx-focus `.github/workflows/`.
-
 ## Summary
 
 | Workflow | Runs on | Job (check name) | Required on `main` | Copied by init-repo |
@@ -32,7 +30,7 @@ Rules: docs/versioning.md.
 - Pin third-party actions to a commit SHA with the version in a comment: `actions/checkout@<sha> # v4.4.0`.
 - Least permissions: set `permissions` at workflow level; `{}` when no token is needed.
 - Untrusted input (PR title, body, branch name) goes through `env`, never `${{ }}` inside `run`.
-- Secrets: repo secrets only; name each secret and its scope in the project's docs (e.g. btmx-focus `TAP_TOKEN`).
+- Secrets: repo secrets only; name each secret and its scope in the project's docs.
 
 ## 4. Decide later
 

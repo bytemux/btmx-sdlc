@@ -2,8 +2,6 @@
 
 Nov 26, 2026 · @Mike · draft 1 · versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html); bumps come from [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) titles (docs/conventions.md)
 
-Origin: btmx-focus ADR 0017 (release on every merge to main) and ADR 0018 (only typed commits release).
-
 ## Summary
 
 | Item | Rule | Example |
