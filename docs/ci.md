@@ -27,11 +27,28 @@ Rules: docs/versioning.md.
 
 ## 3. Rules for all workflows
 
-- Pin third-party actions to a commit SHA with the version in a comment: `actions/checkout@<sha> # v4.4.0`.
+- Pin every action and reusable workflow to a full-length commit SHA, with the version in a comment: `actions/checkout@<sha> # v4.4.0`. The org setting below rejects a tag or branch (`@v4`, `@main`).
+- Use only actions the org setting allows (§4). Prefer plain bash in `run` when it is a few lines (e.g. `pr-title`).
 - Least permissions: set `permissions` at workflow level; `{}` when no token is needed.
 - Untrusted input (PR title, body, branch name) goes through `env`, never `${{ }}` inside `run`.
 - Secrets: repo secrets only; name each secret and its scope in the project's docs.
 
-## 4. Decide later
+## 4. Allowed actions (org setting)
+
+The GitHub organization that owns the repos sets which actions and reusable workflows can run, for all its repos: org Settings → Actions → General → Policies.
+
+| Setting | Value | Effect |
+| --- | --- | --- |
+| Policy | Allow the org's own, and select non-org, actions and reusable workflows | Actions and reusable workflows in the org's own repos are allowed; others only if a row below allows them |
+| Allow actions created by GitHub | on | `actions/*` and `github/*` (e.g. `actions/checkout`) |
+| Allow actions by Marketplace verified creators | on | Actions from creators with GitHub's verified badge on the Marketplace |
+| Allow or block specified actions and reusable workflows | empty | No extra allow or block entries |
+| Require actions to be pinned to a full-length commit SHA | on | A run that uses `@v4` or `@main` fails before it starts |
+
+- Any other action fails the run with "not allowed". To use one: add it to the allow list (`owner/repo@<sha>`), or copy it into a repo of the org.
+- A verified creator is not a code review: still read an action before you add it, and pin it (§3).
+- `skill:init-repo` does not change org settings: an org admin sets them once.
+
+## 5. Decide later
 
 - L1 deterministic checks (types, lint, tests) as a required check: depends on each project's stack (docs/sdlc-draft-1.md §5.3).
