@@ -39,7 +39,10 @@ expect() {
     fi
 }
 
-expect "first release"           1.0.0 ""     "feat: a"
+expect "first release"           0.0.1 ""     "feat: a"
+expect "first release, breaking" 0.0.1 ""     "feat!: a"
+expect "0.x feat → minor"        0.1.0 v0.0.1 "feat: a"
+expect "0.x breaking → 1.0.0"    1.0.0 v0.1.4 "feat!: a"
 expect "feat → minor"            1.3.0 v1.2.3 "feat: a"
 expect "fix → patch"             1.2.4 v1.2.3 "fix: a"
 expect "fix with scope → patch"  1.2.4 v1.2.3 "fix(ui): a (#7)"
@@ -52,6 +55,12 @@ expect "untyped → none"          ""    v1.2.3 "Create LICENSE"
 expect "untyped + fix → patch"   1.2.4 v1.2.3 "Create LICENSE" "fix: a"
 expect "nothing since tag"       ""    v1.2.3
 expect "uppercase type → none"   ""    v1.2.3 "Feat: a"
+expect "unknown type! → none"    ""    v1.2.3 "wip!: a"
+expect "untyped BREAKING → none" ""    v1.2.3 $'Update README\n\nBREAKING CHANGE: b'
+expect "chore BREAKING → major"  2.0.0 v1.2.3 $'chore: a\n\nBREAKING CHANGE: b'
+expect "revert → patch"          1.2.4 v1.2.3 "revert: a"
+expect "pre-release tag ignored" 0.0.1 v1.2.3-rc.1 "fix: a"
+expect "build-metadata tag ignored" 0.0.1 v1.2.3+b1 "fix: a"
 expect "merge commit title"      1.3.0 v1.2.3 $'Merge pull request #5 from o/b\n\nfeat: a'
 
 [ "$fails" -eq 0 ] || { echo "$fails failed"; exit 1; }
