@@ -41,6 +41,7 @@ expect() {
 
 expect "first release"           0.0.1 ""     "feat: a"
 expect "first release, breaking" 0.0.1 ""     "feat!: a"
+expect "new repo, setup only"    ""    ""     "chore: add btmx-sdlc conventions"
 expect "0.x feat → minor"        0.1.0 v0.0.1 "feat: a"
 expect "0.x breaking → 1.0.0"    1.0.0 v0.1.4 "feat!: a"
 expect "feat → minor"            1.3.0 v1.2.3 "feat: a"

@@ -10,7 +10,7 @@ Nov 26, 2026 · @Mike · draft 1 · versions follow [Semantic Versioning 2.0.0](
 | Tag | `v<version>` on the released commit of `main` | `v1.4.2` |
 | Source | commit titles on `main` since the latest `v<major>.<minor>.<patch>` tag; other tags (e.g. `v1.2.0-rc.1`) are ignored | `feat: add export (#12)` |
 | When | every push to `main` (a merged PR); by hand (Run workflow), with an optional dry run that only prints the version | — |
-| First release | no tag yet → `0.0.1` | — |
+| First release | no tag yet → `0.0.1` at the first releasable commit; a new repo's setup commit (`chore:`) releases nothing | — |
 | Who sets it | the Release workflow only; nobody edits a version by hand | — |
 
 ## 1. Bump
