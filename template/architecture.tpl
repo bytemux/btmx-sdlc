@@ -1,26 +1,26 @@
 # Architecture checklist
 
-Пройти перед первым delivery loop. Каждый пункт, где решение трудно отменить, оформить как ADR (`docs/adr/NNNN-slug.md`).
+Go through it before the first delivery loop. Record each item whose decision is hard to reverse as an ADR (`docs/adr/NNNN-slug.md`).
 
 ## Data model
-- [ ] Основные entities и связи между ними
-- [ ] Что является source of truth
+- [ ] Main entities and the relations between them
+- [ ] What is the source of truth
 
 ## Storage
-- [ ] Где живут данные: local (SQLite, files) или backend
-- [ ] Формат хранения
+- [ ] Where the data lives: local (SQLite, files) or backend
+- [ ] Storage format
 
 ## Sync & backup
-- [ ] Нужна ли sync между устройствами (iCloud, свой backend, нет)
-- [ ] Как восстановить данные при потере устройства
-- [ ] Export данных
+- [ ] Is sync between devices needed (iCloud, own backend, none)
+- [ ] How to restore data when a device is lost
+- [ ] Data export
 
 ## Schema migrations
-- [ ] Как меняется формат данных между версиями
-- [ ] Как проверяется migration (tests на реальных данных)
+- [ ] How the data format changes between versions
+- [ ] How a migration is tested (tests on real data)
 
 ## Distribution (Mobile, IOS)
-- [ ] Как приложение попадает на устройства
+- [ ] How the app gets onto devices
 - [ ] Code signing
 - [ ] Notarization (macOS)
 - [ ] TestFlight / developer account (iOS)

@@ -1,13 +1,13 @@
 # Spike: <title>
 
 ## Question
-Вопрос из issue.
+The question from the issue.
 
 ## What was tried
-Что пробовали и как.
+What was tried and how.
 
 ## Answer
-Да / нет / конкретный ответ. Если ответа нет — что успели узнать.
+Yes / no / a specific answer. If there is no answer, what was learned so far.
 
 ## Recommendation
-Что делать дальше: написать Story, ADR или отказаться от подхода.
+What to do next: write a Story, an ADR, or drop the approach.
