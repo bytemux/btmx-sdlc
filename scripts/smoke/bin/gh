@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+"""Fake gh for local tests. State in $FAKE_GH_STATE (json). Remote = $FAKE_REMOTE (bare repo)."""
+import json, os, subprocess, sys
+
+ST = os.environ["FAKE_GH_STATE"]
+REMOTE = os.environ["FAKE_REMOTE"]
+LOG = os.environ.get("FAKE_GH_LOG")
+args = sys.argv[1:]
+if LOG:
+    with open(LOG, "a") as f:
+        f.write(" ".join(args) + "\n")
+
+def load():
+    if os.path.exists(ST):
+        return json.load(open(ST))
+    return {"next": 10, "issues": {}, "prs": {}, "subs": {}}
+
+def save(s):
+    json.dump(s, open(ST, "w"))
+
+def opt(name, default=None):
+    if name in args:
+        return args[args.index(name) + 1]
+    return default
+
+def out(obj):
+    q = opt("-q")
+    data = json.dumps(obj)
+    if q:
+        r = subprocess.run(["jq", "-r", q], input=data, capture_output=True, text=True)
+        if r.returncode:
+            sys.stderr.write(r.stderr); sys.exit(1)
+        sys.stdout.write(r.stdout)
+    else:
+        print(data)
+
+def sh(*cmd, cwd=None):
+    subprocess.run(cmd, check=True, cwd=cwd, stdout=subprocess.DEVNULL)
+
+s = load()
+URL = "https://github.com/bytemux/btmx-labapp"
+FIELDS = [{"id": 50470429, "name": "Priority", "data_type": "single_select",
+           "options": [{"id": 1, "name": "Urgent", "priority": 1}, {"id": 2, "name": "High", "priority": 2},
+                       {"id": 3, "name": "Medium", "priority": 3}, {"id": 4, "name": "Low", "priority": 4}]}]
+
+cmd = args[:2]
+if cmd == ["repo", "clone"]:
+    sh("git", "clone", "-q", REMOTE, args[3])
+elif cmd == ["repo", "view"]:
+    out({"defaultBranchRef": {"name": "main"}})
+elif cmd == ["repo", "edit"]:
+    print("✓ Edited repository")
+elif cmd == ["issue", "create"]:
+    n = s["next"]; s["next"] += 1
+    s["issues"][str(n)] = {"number": n, "id": 9000 + n, "title": opt("--title"),
+                           "body": open(opt("--body-file")).read(), "state": "OPEN", "type": None, "fields": []}
+    save(s); print(f"{URL}/issues/{n}")
+elif cmd == ["issue", "develop"]:
+    n, name, base = args[2], opt("--name"), opt("--base")
+    sh("git", "fetch", "-q", "origin")
+    sh("git", "checkout", "-q", "-b", name, f"origin/{base}")
+    sh("git", "push", "-q", "-u", "origin", name)
+    print(f"{URL}/tree/{name}")
+elif cmd == ["issue", "view"]:
+    out({"state": s["issues"][args[2]]["state"]})
+elif cmd == ["issue", "close"]:
+    s["issues"][args[2]]["state"] = "CLOSED"; save(s)
+elif cmd == ["pr", "create"]:
+    n = s["next"]; s["next"] += 1
+    s["prs"][str(n)] = {"title": opt("--title"), "body": opt("--body"), "head": opt("--head"), "base": opt("--base")}
+    save(s); print(f"{URL}/pull/{n}")
+elif cmd == ["pr", "checks"]:
+    pr = s["prs"][args[2].rsplit("/", 1)[1]]
+    # same checks as conventions.yml
+    env = dict(os.environ, TITLE=pr["title"], BRANCH=pr["head"], BODY=pr["body"])
+    r = subprocess.run(["bash", os.environ["FAKE_CHECK"]], env=env)
+    if r.returncode:
+        print("X conventions failed"); sys.exit(1)
+    print("✓ conventions")
+elif cmd == ["pr", "merge"]:
+    num = args[2].rsplit("/", 1)[1]; pr = s["prs"][num]
+    tmp = os.environ["FAKE_TMP"] + f"/merge-{num}"
+    sh("git", "clone", "-q", REMOTE, tmp)
+    sh("git", "checkout", "-q", pr["base"], cwd=tmp)
+    sh("git", "merge", "-q", "--squash", f"origin/{pr['head']}", cwd=tmp)
+    sh("git", "commit", "-q", "-m", f"{pr['title']} (#{num})", "-m", pr["body"], cwd=tmp)
+    sh("git", "push", "-q", "origin", pr["base"], cwd=tmp)
+    body = pr["body"].lower()
+    for iss in s["issues"].values():
+        if f"closes #{iss['number']}" in body:
+            iss["state"] = "CLOSED"
+    save(s); print(f"✓ Squashed and merged #{num}")
+elif args[0] == "api":
+    path = [a for a in args[1:] if not a.startswith("-") and a not in
+            (opt("-X"), opt("-H"), opt("-q"), opt("-f"), opt("-F"), opt("--input"))][0]
+    method = opt("-X", "GET")
+    parts = path.split("/")
+    if path == "user/issue-fields":
+        out(FIELDS)
+    elif path.startswith("repos/") and len(parts) == 3 and method == "PATCH":
+        pass  # repo settings
+    elif len(parts) == 5 and parts[3] == "issues" and method == "PATCH":
+        f = opt("-f"); k, v = f.split("=", 1)
+        if v not in ("Story", "Task", "Bug", "Spike"):
+            sys.stderr.write("invalid type\n"); sys.exit(1)
+        s["issues"][parts[4]]["type"] = v; save(s)
+    elif len(parts) == 5 and parts[3] == "issues":
+        out(s["issues"][parts[4]])
+    elif len(parts) == 6 and parts[5] == "issue-field-values" and method == "POST":
+        body = json.load(sys.stdin)
+        for fv in body["issue_field_values"]:
+            names = [o["name"] for o in FIELDS[0]["options"]]
+            if fv["field_id"] != 50470429 or fv["value"] not in names:
+                sys.stderr.write("422 invalid field value\n"); sys.exit(1)
+        s["issues"][parts[4]]["fields"] = body["issue_field_values"]; save(s)
+    elif len(parts) == 6 and parts[5] == "sub_issues" and method == "POST":
+        sid = int(opt("-F").split("=", 1)[1])
+        child = [i for i in s["issues"].values() if i["id"] == sid][0]
+        s["subs"].setdefault(parts[4], []).append(child["number"]); save(s)
+    elif len(parts) == 6 and parts[5] == "sub_issues":
+        out([{"number": n, "title": s["issues"][str(n)]["title"], "state": s["issues"][str(n)]["state"].lower()}
+             for n in s["subs"].get(parts[4], [])])
+    else:
+        sys.stderr.write(f"fake gh: unhandled api {method} {path}\n"); sys.exit(1)
+else:
+    sys.stderr.write(f"fake gh: unhandled {args}\n"); sys.exit(1)
