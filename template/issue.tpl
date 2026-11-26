@@ -4,18 +4,18 @@
 Story | Spike (research)
 
 ## Goal
-- Story: «как пользователь я могу X»
-- Spike: вопрос, на который нужен ответ
+- Story: "as a user I can X"
+- Spike: the question that needs an answer
 
 ## Context
-Зачем это нужно. Ссылка на Roadmap или idea.
+Why this is needed. Link to the Roadmap or the idea.
 
 ## Acceptance criteria
-- Story: проверяемые условия, по ним идёт L2 conformance
-- Spike: что считается ответом на вопрос
+- Story: testable conditions; L2 conformance checks against them
+- Spike: what counts as an answer to the question
 
 ## Out of scope
-Что в этой issue не делаем.
+What this issue does not do.
 
 ## Links
-ADR, Spike, связанные issues.
+ADR, Spike, related issues.

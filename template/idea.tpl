@@ -1,17 +1,17 @@
 # Idea: <name>
 
 ## Problem
-Какую проблему решает, одним предложением.
+What problem it solves, in one sentence.
 
 ## User experience
-Как выглядит использование: кто, когда, что делает.
+What use looks like: who, when, what they do.
 
 ## Scope
-- PoC: минимальный набор, который уже полезен
-- Later: всё остальное
+- PoC: the minimal set that is already useful
+- Later: everything else
 
 ## Risks
-Riskiest assumption и открытые вопросы. Кандидаты в Spike (research).
+Riskiest assumption and open questions. Candidates for a Spike (research).
 
 ## Definition of done for PoC
-Как понять, что PoC удался.
+How to tell that the PoC succeeded.

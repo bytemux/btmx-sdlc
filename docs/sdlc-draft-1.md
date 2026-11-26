@@ -4,117 +4,117 @@ Nov 26, 2026 · @Mike
 
 ## 1. Purpose
 
-btmx-sdlc — agentic SDLC framework: набор методологий, компонентов и constraints для агентского SDLC, плюс pipeline на подмножестве этих компонентов.
+btmx-sdlc — agentic SDLC framework: a set of methodologies, components and constraints for an agentic SDLC, plus a pipeline built on a subset of these components.
 
 ### Author Goals
 
-- Разработка хобби-проектов
-- Обкатка процессов и технологий командной разработки на их примере
+- Develop hobby projects
+- Try out team development processes and technologies on them
 
 ### Goals
 
-- Минимум внимания пользователя на разработку продукта
-- Разработка стандартизирована
-- Разработка не деградирует со временем
-- Система declarative, компоненты replaceable
+- Minimal user attention on product development
+- Development is standardized
+- Development does not degrade over time
+- The system is declarative, components are replaceable
 
-Как проверять каждую цель — см. §7 Metrics.
+How to check each goal — see §7 Metrics.
 
 ## 2. Principles
 
-- **Declarative** — pipeline implementation задаётся config (yaml), собранным из кубиков: interfaces и components.
-- **Replaceable** — компонент = interface + текущая implementation. Например, категория `quality_gates`, к элементам которой может обращаться любой агент.
-- **Self-verification** — агент сам проверяет результат до того, как его увидит человек.
-- **Human checkpoints** — внимание человека нужно только в фиксированных точках pipeline.
+- **Declarative** — the pipeline implementation is defined by a config (yaml) assembled from building blocks: interfaces and components.
+- **Replaceable** — component = interface + current implementation. For example, the `quality_gates` category, whose elements any agent can use.
+- **Self-verification** — the agent checks the result itself before a human sees it.
+- **Human checkpoints** — human attention is needed only at fixed points of the pipeline.
 
 ## 3. Pipeline
 
-Коротко: пользователь рассказывает идею → агент делает и сам проверяет результат по стандартам → пользователь читает PR со стандартизированным report
+In short: the user describes an idea → the agent builds it and checks the result against the standards itself → the user reads a PR with a standardized report
 
 ### Discovery
 
-Один раз на проект: от идеи до утверждённого PoC.
+Once per project: from idea to approved PoC.
 
 | # | Phase | Attention split | Input | Output | Gate |
 | --- | --- | --- | --- | --- | --- |
-| 0 | Record idea | human | идея в свободной форме или интервью (попробовать `/wayfinder`) | запись идеи в свободной форме | - |
-| 1 | Review idea | human + agent | запись идеи в свободной форме | аналоги, ожидаемый UX, критика, PoC + укрупненный Roadmap | Matches requirements from idea_template.md |
-| 2 | Review PoC | human | PoC + Roadmap | утверждённый PoC | - |
+| 0 | Record idea | human | free-form idea or interview (try `/wayfinder`) | free-form idea record | - |
+| 1 | Review idea | human + agent | free-form idea record | analogues, expected UX, critique, PoC + high-level Roadmap | Matches requirements from idea_template.md |
+| 2 | Review PoC | human | PoC + Roadmap | approved PoC | - |
 
 ### Delivery loop
 
-Повторяется на каждую Story: первый loop — реализация PoC, дальше по Roadmap. Fail на L1 или L2 возвращает к шагу Implement, feedback на L3 — тоже.
+Repeats for each Story: the first loop implements the PoC, then follows the Roadmap. A fail on L1 or L2 returns to the Implement step; feedback on L3 does too.
 
 | # | Step | Attention split | Input | Output | Gate |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Pick Story | human | Roadmap | Story issue | Issue template |
-| 2 | Spike, если нужен | agent | неизвестность в Story | spike report (+ ADR, если нужно) | - |
+| 2 | Spike, if needed | agent | unknowns in the Story | spike report (+ ADR, if needed) | - |
 | 3 | Spec | agent | Story | SPEC: goal, out of scope, acceptance criteria | ? |
-| 4 | Implement | agent | SPEC | код в worktree | - |
-| 5 | Review: Deterministic | agent | код | green checks | L1 deterministic |
+| 4 | Implement | agent | SPEC | code in a worktree | - |
+| 5 | Review: Deterministic | agent | code | green checks | L1 deterministic |
 | 6 | Review: Conformance | agent | diff + SPEC + Story | review notes | L2 conformance |
-| 7 | PR + report | agent | diff + review notes | PR с report | PR report template |
-| 8 | Review: Human | human | PR + report | merge или feedback | L3 human |
-| 9 | Update Roadmap | human + agent | merged PR, замечания | обновлённый Roadmap | - |
+| 7 | PR + report | agent | diff + review notes | PR with report | PR report template |
+| 8 | Review: Human | human | PR + report | merge or feedback | L3 human |
+| 9 | Update Roadmap | human + agent | merged PR, remarks | updated Roadmap | - |
 
 ### Issue types
 
-Основная единица delivery loop — Story. Spike снимает неизвестность перед Story, Task — шаги агента внутри Story.
+The main unit of the delivery loop is the Story. A Spike removes unknowns before a Story; Tasks are the agent's steps inside a Story.
 
-| Type | Что это | Output | Код | Done |
+| Type | What it is | Output | Code | Done |
 | --- | --- | --- | --- | --- |
-| Story (main) | vertical slice: «я как пользователь могу X»; 1 Story = 1 PR | работающая фича в PR | остаётся | acceptance criteria выполнены, gates L1–L3 |
-| Spike (research) | исследование riskiest assumption перед Story | spike report (+ ADR, если нужно) | выбрасывается | spike report заполнен |
-| Task | технический шаг внутри Story; не заводится в tracker | часть PR своей Story | остаётся | закрывается вместе со Story |
+| Story (main) | vertical slice: "as a user I can X"; 1 Story = 1 PR | working feature in a PR | kept | acceptance criteria met, gates L1–L3 |
+| Spike (research) | research of the riskiest assumption before a Story | spike report (+ ADR, if needed) | thrown away | spike report filled in |
+| Task | technical step inside a Story; not created in the tracker | part of its Story's PR | kept | closed together with the Story |
 
 ## 4. Artifacts (contracts)
 
-Агенты и человек общаются через эти файлы, поэтому у каждого нужен фиксированный формат.
+Agents and the human communicate through these files, so each one needs a fixed format.
 
-| Artifact | Назначение | Кто пишет | Кто читает | Template |
+| Artifact | Purpose | Who writes | Who reads | Template |
 | --- | --- | --- | --- | --- |
-| `GLOSSARY.md` | единые термины проекта | ? | все агенты | ? |
-| `SPEC.md` | что строим, acceptance criteria | ? | агент-исполнитель, L2 review | ? |
-| `docs/adr/0001-slug.md` | решения, которые трудно отменить | ? | все агенты | ? |
-| `docs/spikes/0001-slug.md` | spike report: question, what was tried, answer, recommendation | агент | HUMAN, агент на шаге Spec | `template/spike.tpl` |
-| Issue template | одна задача = один PR | ? | агент-исполнитель | `template/issue.tpl` |
-| PR report template | стандартизированный комментарий агента о результатах | агент | HUMAN | ? |
+| `GLOSSARY.md` | shared project terms | ? | all agents | ? |
+| `SPEC.md` | what we build, acceptance criteria | ? | executor agent, L2 review | ? |
+| `docs/adr/0001-slug.md` | decisions that are hard to reverse | ? | all agents | ? |
+| `docs/spikes/0001-slug.md` | spike report: question, what was tried, answer, recommendation | agent | HUMAN, agent at the Spec step | `template/spike.tpl` |
+| Issue template | one task = one PR | ? | executor agent | `template/issue.tpl` |
+| PR report template | standardized agent comment on the results | agent | HUMAN | ? |
 
-- [ ] Open question: что входит в PR report (gates, отклонения от SPEC, что проверить руками)?
-- [ ] Decision tracking - ADR? Spec? glosary? Все пункты кроме ADR под вопросом и зависят от выбранной разработки из кандидатов: TDD, BDD, Openspec
+- [ ] Open question: what goes into the PR report (gates, deviations from SPEC, what to check by hand)?
+- [ ] Decision tracking - ADR? Spec? glossary? All items except ADR are open and depend on the development method chosen from the candidates: TDD, BDD, Openspec
 
 ## 5. Components
 
-Каждый компонент описан через interface, чтобы implementation можно было заменить.
+Each component is described by an interface so that the implementation can be replaced.
 
 ### 5.1 Orchestration
 
 | Role | Interface | Current choice | Alternatives |
 | --- | --- | --- | --- |
-| Interview идеи | ? | `/wayfinder` (попробовать) | ? |
+| Idea interview | ? | `/wayfinder` (to try) | ? |
 | Agent runtime | ? | Claude Code, CODEX subagent, Antigravity subagent | ? |
 | Unattended runs | ? | ? | ? |
 
 ### 5.2 Environment (DevEx)
 
-Стек технологий по современному стандарту разработки; цель — многопоточная разработка.
+Technology stack by the current development standard; the goal is parallel development.
 
 - devcontainers
 - git worktrees
 
 ### 5.3 Quality gates
 
-Constraints и checks, чтобы агенты давали предсказуемый результат, который легко анализировать. Interface: команда → pass/fail + report.
+Constraints and checks so that agents give a predictable result that is easy to analyze. Interface: command → pass/fail + report.
 
-| Level | Что проверяет | Implementations |
+| Level | What it checks | Implementations |
 | --- | --- | --- |
-| L1 deterministic | зелёные чеки | types, lint, tests, coverage, mutation testing, fuzzing |
-| L2 conformance | соответствие SPEC и исходной задаче в tracker | ? (агент-reviewer) |
-| L3 human | финальное решение | HUMAN review PR |
+| L1 deterministic | green checks | types, lint, tests, coverage, mutation testing, fuzzing |
+| L2 conformance | conformance to SPEC and the original task in the tracker | ? (reviewer agent) |
+| L3 human | final decision | HUMAN review PR |
 
 #### Testing
 
-Виды тестирования внутри L1 deterministic:
+Testing types inside L1 deterministic:
 
 - Coverage tests
 - Mutation testing
@@ -130,33 +130,33 @@ Constraints и checks, чтобы агенты давали предсказуе
 
 | Role | Interface | Current choice | Alternatives |
 | --- | --- | --- | --- |
-| Правила для агентов | ? | `CLAUDE.md` / `AGENTS.md` | ? |
+| Rules for agents | ? | `CLAUDE.md` / `AGENTS.md` | ? |
 | Skills | ? | harness/skills | ? |
 
 ## 6. Bootstrap
 
-Новый проект стартует из template repo, в котором компоненты §5 уже подключены.
+A new project starts from a template repo in which the §5 components are already connected.
 
-- [ ] Open question: где лежит template и какие компоненты включены по умолчанию? - в ./template. Для инициализации репозитория будет отдельный скилл см папку ./skills/init
+- [ ] Open question: where does the template live and which components are on by default? - in ./template. A separate skill will initialize the repo, see the ./skills/init folder
 
 ## 7. Metrics
 
-Каждая цель из §1 получает измеримую метрику. Значения — предложения, их нужно утвердить.
+Each goal from §1 gets a measurable metric. The values are proposals and need approval.
 
-| Цель | Metric | Data source | Target |
+| Goal | Metric | Data source | Target |
 | --- | --- | --- | --- |
-| Минимум внимания пользователя | human touches на PR; время review | GitHub API: reviews, comments и commits от human в PR; `createdAt` → `mergedAt` (`gh pr list --json`) | ? |
-| Разработка не деградирует | % PR, прошедших gates с первой попытки; flaky tests; рост lint warnings | GitHub Actions: история runs и attempts (`gh run list`); test reports (JUnit) и lint output как CI artifacts | ? |
-| Разработка стандартизирована | % проектов из template; % PR с report по template | список repos + marker-файл template (`gh repo list`); PR body содержит секции report (`gh pr list --json body`) | ? |
-| Throughput | issues → merged PR за неделю | GitHub API (`gh pr list --state merged --json mergedAt`) или локально `git log --merges --since` | ? |
+| Minimal user attention | human touches per PR; review time | GitHub API: reviews, comments and commits from the human in the PR; `createdAt` → `mergedAt` (`gh pr list --json`) | ? |
+| Development does not degrade | % of PRs that pass gates on the first attempt; flaky tests; growth of lint warnings | GitHub Actions: history of runs and attempts (`gh run list`); test reports (JUnit) and lint output as CI artifacts | ? |
+| Development is standardized | % of projects from the template; % of PRs with a report from the template | list of repos + template marker file (`gh repo list`); PR body contains the report sections (`gh pr list --json body`) | ? |
+| Throughput | issues → merged PRs per week | GitHub API (`gh pr list --state merged --json mergedAt`) or locally `git log --merges --since` | ? |
 
 ## 8. Open questions / Backlog
 
 - [ ] Non-goals (§1)
-- [ ] Gates для фаз Idea и Review (§3)
-- [ ] Формат PR report (§4)
-- [ ] Interfaces для компонентов (§5)
-- [ ] Реализация L2 conformance review (§5.3)
-- [ ] Tracker для issues и Roadmap (§5.4)
+- [ ] Gates for the Idea and Review phases (§3)
+- [ ] PR report format (§4)
+- [ ] Interfaces for components (§5)
+- [ ] Implementation of the L2 conformance review (§5.3)
+- [ ] Tracker for issues and Roadmap (§5.4)
 - [ ] Template repo (§6)
-- [ ] Targets для metrics (§7)
+- [ ] Targets for metrics (§7)
