@@ -61,6 +61,7 @@ Nov 26, 2026 · @Mike · draft 4 · commits and PR titles follow [Conventional C
 | Commit message | Conventional Commits, first line | pre-commit `conventional-commit-msg` (commit-msg) | local |
 | Branch name, no commits on `main` | `<type>/<n>-<slug>`; `main` and `master` blocked | pre-commit `no-commit-to-branch` (at commit) | local |
 | PR title | Conventional Commits | `skill:pr` builds it; Action `pr-title` checks it | GitHub: required by ruleset |
+| Version and release | SemVer from commit titles on `main` (docs/versioning.md) | Action `release` (`scripts/next-version.sh`) | GitHub, after merge |
 | Merge only via PR, squash only | — | ruleset on `main` | GitHub: public repo or Pro |
 | Commit on `main` = PR title | — | repo merge settings | GitHub |
 | PR body | template + `Closes #<n>` | `skill:pr` | agent skill |
@@ -91,7 +92,9 @@ Pre-commit hooks: copy `skills/init-repo/config/.pre-commit-config.yaml` to the 
 pre-commit install      # pre-commit and commit-msg hooks
 ```
 
-PR title check: copy `skills/init-repo/config/.github/workflows/pr-title.yml` to the repo and merge it to `main` before adding the ruleset. It runs `amannn/action-semantic-pull-request` with the 11 types; Actions are free on public repos.
+PR title check: copy `skills/init-repo/config/.github/workflows/pr-title.yml` to the repo and merge it to `main` before adding the ruleset. It checks the title against the 11 types in plain bash (docs/ci.md); Actions are free on public repos.
+
+Release (repos that publish releases): copy `skills/init-repo/config/.github/workflows/release.yml` and `skills/init-repo/config/scripts/next-version.sh`, then replace the `Build` step (docs/ci.md §2).
 
 Ruleset on `main` (public repo or GitHub Pro): PR required, squash only, `pr-title` check required, admin bypass:
 
