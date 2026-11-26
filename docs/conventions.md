@@ -46,7 +46,7 @@ Nov 26, 2026 · @Mike · draft 4 · commits and PR titles follow [Conventional C
 - `!` after type or scope: breaking change.
 - Spike PR (spike report only): type `docs`.
 - Created with `skill:pr`. Body: `template/pr-description.tpl` + `Closes #<n>`. The PR is linked to the issue automatically when the branch was made with `gh issue develop`; `Closes #<n>` is the fallback and keeps the issue number in the commit on `main`.
-- Merge: squash only. Commit on `main` = PR title + `(#PR)`, body = PR body.
+- Merge: squash only, by the user. Agents open draft PRs and merge only when the user asks directly. Commit on `main` = PR title + `(#PR)`, body = PR body.
 
 ## 4. Branch and commit
 
@@ -59,15 +59,16 @@ Nov 26, 2026 · @Mike · draft 4 · commits and PR titles follow [Conventional C
 | Gate | Rule | Managed by | Status |
 | --- | --- | --- | --- |
 | Commit message | Conventional Commits, first line | pre-commit `conventional-commit-msg` (commit-msg) | local |
-| Branch name | `main` or `<type>/<n>-<slug>` | pre-commit `branch-name` (at commit) | local |
-| Squash only, commit on `main` = PR title | — | repo merge settings | GitHub |
-| PR title and body | Conventional Commits; body from template + `Closes #<n>` | `skill:pr` | agent skill |
+| Branch name, no commits on `main` | `<type>/<n>-<slug>`; `main` and `master` blocked | pre-commit `no-commit-to-branch` (at commit) | local |
+| PR title | Conventional Commits | `skill:pr` builds it; Action `pr-title` checks it | GitHub: required by ruleset |
+| Merge only via PR, squash only | — | ruleset on `main` | GitHub: public repo or Pro |
+| Commit on `main` = PR title | — | repo merge settings | GitHub |
+| PR body | template + `Closes #<n>` | `skill:pr` | agent skill |
 | PR linked to its issue, issue closed on merge | — | branch from `gh issue develop` (auto link); `Closes #<n>` as fallback | GitHub |
 | Issue type set; Task has a Story parent | every issue has a type; every Task is a sub-issue of a Story | `skill:issue` | agent skill |
 | Hooks installed in a clone | `pre-commit install` | `skill:init-repo` | agent skill |
-| Merge only via PR | — | ruleset | not solved: private repo on GitHub Free |
 
-A gate managed by a skill holds only when the agent uses the skill. `git commit --no-verify` skips the pre-commit hooks.
+Target: public repos on GitHub Free. A private repo on Free has no ruleset: `pr-title` only reports, and merge via PR is a rule only. A gate managed by a skill holds only when the agent uses the skill. `git commit --no-verify` skips the pre-commit hooks.
 
 ### Repo setup
 
@@ -90,7 +91,9 @@ Pre-commit hooks: copy `skills/init-repo/config/.pre-commit-config.yaml` to the 
 pre-commit install      # pre-commit and commit-msg hooks
 ```
 
-Ruleset on `main` (public repo or GitHub Pro only): PR + squash required, admin bypass:
+PR title check: copy `skills/init-repo/config/.github/workflows/pr-title.yml` to the repo and merge it to `main` before adding the ruleset. It runs `amannn/action-semantic-pull-request` with the 11 types; Actions are free on public repos.
+
+Ruleset on `main` (public repo or GitHub Pro): PR required, squash only, `pr-title` check required, admin bypass:
 
 ```bash
 gh api -X POST repos/{owner}/{repo}/rulesets --input - <<'JSON'
@@ -105,7 +108,10 @@ gh api -X POST repos/{owner}/{repo}/rulesets --input - <<'JSON'
     { "type": "pull_request", "parameters": {
         "required_approving_review_count": 0, "dismiss_stale_reviews_on_push": false,
         "require_code_owner_review": false, "require_last_push_approval": false,
-        "required_review_thread_resolution": false, "allowed_merge_methods": ["squash"] } }
+        "required_review_thread_resolution": false, "allowed_merge_methods": ["squash"] } },
+    { "type": "required_status_checks", "parameters": {
+        "strict_required_status_checks_policy": false,
+        "required_status_checks": [ { "context": "pr-title" } ] } }
   ]
 }
 JSON
@@ -118,5 +124,3 @@ JSON
 - Now: `skill:issue` creates the issue, sets its type and, for a Task, the parent (`--parent <story>`).
 - OpenSpec: no GitHub Issues in core; tasks live in `tasks.md`. If chosen: 1 Story = 1 OpenSpec change, `skill:issue` creates one Task per `tasks.md` section, 1 Task = 1 PR.
 - Spec Kit: has a built-in `taskstoissues` command (`tasks.md` → GitHub issues). Heavier setup.
-
-**Merge only via PR.** Add the ruleset on `main` when the repo is public or on GitHub Pro.
