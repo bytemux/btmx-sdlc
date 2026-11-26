@@ -7,7 +7,7 @@ Nov 26, 2026 · @Mike · draft 1 · GitHub Actions templates in `skills/init-rep
 | Workflow | Runs on | Job (check name) | Required on `main` | Copied by init-repo |
 | --- | --- | --- | --- | --- |
 | `pr-title.yml` | PR opened, edited, pushed | `pr-title` | yes (ruleset) | always |
-| `release.yml` | push to `main`; by hand | `plan`, `release` | no | when the repo publishes releases |
+| `release.yml` | push to `main`; by hand | `plan`, `release` | no | always |
 
 ## 1. pr-title
 

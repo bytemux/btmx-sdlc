@@ -94,7 +94,7 @@ pre-commit install      # pre-commit and commit-msg hooks
 
 PR title check: copy `skills/init-repo/config/.github/workflows/pr-title.yml` to the repo and merge it to `main` before adding the ruleset. It checks the title against the 11 types in plain bash (docs/ci.md); Actions are free on public repos.
 
-Release (repos that publish releases): copy `skills/init-repo/config/.github/workflows/release.yml` and `skills/init-repo/config/scripts/next-version.sh`, then replace the `Build` step (docs/ci.md §2).
+Release: copy `skills/init-repo/config/.github/workflows/release.yml` and `skills/init-repo/config/scripts/next-version.sh`, then replace the `Build` step (docs/ci.md §2).
 
 Ruleset on `main` (public repo or GitHub Pro): PR required, squash only, `pr-title` check required, admin bypass:
 
