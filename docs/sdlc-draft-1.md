@@ -20,6 +20,27 @@ btmx-sdlc — agentic SDLC framework: a set of methodologies, components and con
 
 How to check each goal — see §7 Metrics.
 
+### Scope
+
+Mapped to the classic SDLC phases (Planning → Requirements → Design → Implementation → Testing → Deployment → Maintenance), btmx-sdlc is an Agile model with V-model style verification:
+
+| Classic phase | btmx-sdlc | Coverage |
+| --- | --- | --- |
+| Planning | Discovery: record and review idea, PoC + Roadmap; Update Roadmap | partial |
+| Requirements | Story, SPEC with acceptance criteria | covered |
+| Design | Spike, ADR; `template/architecture.tpl` is not used by any step yet | partial |
+| Implementation | Implement | covered |
+| Testing | L1 deterministic, L2 conformance (verification), L3 human (validation) | covered |
+| Deployment | release tag on every merge to `main` only | out of scope |
+| Maintenance | `Bug` issue type only | out of scope |
+
+### Non-goals
+
+- Deployment: no deploy to environments, no release management beyond the release tag.
+- Maintenance: no monitoring, no incident flow, no feedback from production into the Roadmap.
+
+Both may be revisited later.
+
 ## 2. Principles
 
 - **Declarative** — the pipeline implementation is defined by a config (yaml) assembled from building blocks: interfaces and components.
@@ -152,7 +173,7 @@ Each goal from §1 gets a measurable metric. The values are proposals and need a
 
 ## 8. Open questions / Backlog
 
-- [ ] Non-goals (§1)
+- [x] Non-goals (§1): Deployment and Maintenance
 - [ ] Gates for the Idea and Review phases (§3)
 - [ ] PR report format (§4)
 - [ ] Interfaces for components (§5)
